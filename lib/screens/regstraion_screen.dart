@@ -1,7 +1,9 @@
+import 'package:chat_app/screens/chat_screen.dart';
 import 'package:chat_app/screens/sign_in_screen.dart';
 import 'package:chat_app/utils/app_colors.dart';
 import 'package:chat_app/widget/my_button.dart';
 import 'package:chat_app/widget/my_text_feild.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RegstraionScreen extends StatefulWidget {
@@ -12,6 +14,9 @@ class RegstraionScreen extends StatefulWidget {
 }
 
 class _RegstraionScreenState extends State<RegstraionScreen> {
+  final _auth = FirebaseAuth.instance;
+  late String email;
+  late String password;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,13 +30,35 @@ class _RegstraionScreenState extends State<RegstraionScreen> {
             child: Image.asset("assets/images/logo.png"),
           ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-          MyTextField(hintText: "Enter Your Email"),
+          MyTextField(
+            keyboardType: TextInputType.emailAddress,
+            hintText: "Enter Your Email",
+            onChanged: (value) {
+              email = value;
+            },
+          ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-          MyTextField(hintText: "Enter your password", isPassword: true),
+          MyTextField(
+            hintText: "Enter your password",
+            isPassword: true,
+            onChanged: (value) {
+              password = value;
+            },
+          ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.05),
           MyBoutton(
             titleButton: "Register",
-            onPressed: () {},
+            onPressed: () async {
+              try {
+                final newUser = await _auth.createUserWithEmailAndPassword(
+                    email: email, password: password);
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => ChatScreen(),
+                ));
+              } catch (e) {
+                print(e);
+              }
+            },
             color: AppColors.p2Color,
           ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.02),

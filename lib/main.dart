@@ -1,7 +1,19 @@
 import 'package:chat_app/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'firebase_options.dart'; // أضف هذا الاستيراد
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options:
+          DefaultFirebaseOptions.currentPlatform, // استخدم Firebase Options
+    );
+    print("Firebase Initialized Successfully");
+  } catch (e) {
+    print("Firebase Initialization Error: $e");
+  }
   runApp(const MyApp());
 }
 
@@ -12,7 +24,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chat App',
       theme: ThemeData(
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const SplashScreen(),

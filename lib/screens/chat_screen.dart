@@ -1,4 +1,5 @@
 import 'package:chat_app/utils/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -10,6 +11,28 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
+
+  final _auth = FirebaseAuth.instance;
+  late User signInUser;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getCrrentUser();
+  }
+
+  void getCrrentUser() {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        signInUser = user;
+        print(signInUser.email);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +55,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-
       body: SafeArea(
         child: Column(
           children: [
