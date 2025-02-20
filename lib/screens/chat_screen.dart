@@ -1,6 +1,13 @@
+import 'package:chat_app/data/message_line.dart';
+import 'package:chat_app/data/message_stream_bilder.dart';
 import 'package:chat_app/utils/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+
+final fireStore = FirebaseFirestore.instance;
+late User signInUser; //this will give email
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -11,9 +18,9 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
-
   final _auth = FirebaseAuth.instance;
-  late User signInUser;
+
+  String? messageText; // this will give text اللى هو الرسايل ف الصفحه
 
   @override
   void initState() {
@@ -38,6 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.p1Color,
         title: Row(
           children: [
@@ -49,7 +57,8 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              // TODO: أضف دالة تسجيل الخروج هنا
+              _auth.signOut();
+              Navigator.pop(context);
             },
             icon: Icon(Icons.close, color: Colors.white),
           ),
@@ -58,13 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
-              child: Container(
-                color: Colors.grey[200], // المساحة التي ستُعرض فيها الرسائل
-                child: Center(child: Text("No messages yet!")),
-              ),
-            ),
-
+            MessageStreamBuilder(),
             // صندوق إدخال النص وإرسال الرسائل
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -77,6 +80,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Expanded(
                     child: TextField(
+                      onChanged: (value) {
+                        messageText = value;
+                      },
                       controller: messageController,
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.symmetric(
@@ -95,11 +101,25 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   SizedBox(width: 8),
                   IconButton(
-                    onPressed: () {
-                      String message = messageController.text.trim();
-                      if (message.isNotEmpty) {
-                        print("Message sent: $message");
+                    onPressed: () async {
+                      if (messageText == null || messageText!.trim().isEmpty) {
+                        print(
+                            "Cannot send empty message"); // تأكيد أن الرسالة فارغة
+                        return;
+                      }
+                      try {
+                        DocumentReference docRef =
+                            await fireStore.collection('message').add({
+                          'text': messageText,
+                          'sender': signInUser.email,
+                          'timestamp': FieldValue.serverTimestamp(),
+                        });
+                        print(
+                            "Message sent successfully! Document ID: ${docRef.id}"); // تأكيد نجاح العملية
                         messageController.clear();
+                      } catch (e, stackTrace) {
+                        print('Error sending message: $e');
+                        print('Stack trace: $stackTrace'); // طباعة تفاصيل الخطأ
                       }
                     },
                     icon: Icon(Icons.send, color: AppColors.p1Color),
